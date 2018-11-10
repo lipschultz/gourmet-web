@@ -5,9 +5,39 @@
 {% endblock %}
 
 {% block content %}
-  <div>Yields: {{ recipe['yields'] }} {{ recipe['yields_unit'] }}</div>
+  <div style='padding-bottom:1ex;'>
+  {% if recipe['cuisine'] %}
+    {{ recipe['cuisine'] }}
+  {% endif %}
+  {% if recipe['category'] %}
+    {{ recipe['category'] }}
+  {% endif %}
+  </div>
+
+  <div>Rating:
+    {% if recipe['rating'] %}
+      {{ recipe['rating'] }}/10
+    {% else %}
+      <i>unrated</i>
+    {% endif %}
+  </div>
+
+  <div>Yields:
+    {% if recipe['yields'] %}
+      {{ recipe['yields_pretty'] }} {{ recipe['yields_unit'] }}
+    {% else %}
+      <i>unspecified</i>
+    {% endif %}
+  </div>
+
+  {% if recipe['preptime_pretty'] %}
   <div>Prep Time: {{ recipe['preptime_pretty'] }}</div>
-  <div>Cook Time: {{ recipe['cooktime_pretty'] }}</div>
+  {% endif %}
+
+  {% if recipe['cooktime_pretty'] %}
+    <div>Cook Time: {{ recipe['cooktime_pretty'] }}</div>
+  {% endif %}
+
   <div class='ingredients'><h2>Ingredients</h2>
     {% for ingredient_group in recipe['ingredients_pretty'] %}
       {% if ingredient_group[0] %}
@@ -31,6 +61,7 @@
       {% endif %}
     {% endfor %}
   </div>
+  <hr />
   <div class='instructions'><h2>Instructions</h2>
     {% for instruction in recipe['instructions_pretty'] %}
       <div class='item'>
@@ -41,4 +72,17 @@
       </div>
     {% endfor %}
   </div>
+  <hr />
+  {% if recipe['notes_pretty'] %}
+    <div class='notes'><h2>Notes</h2>
+      {% for note in recipe['notes_pretty'] %}
+        <div class='item'>
+          <input type='checkbox' name='note-{{ loop.index }}' id='note-{{ loop.index }}' onchange='visualizeCheck(this);' />
+            <label name='note-{{ loop.index }}' for='note-{{ loop.index }}'>
+              {{ note }}
+            </label>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
 {% endblock %}

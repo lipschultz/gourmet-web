@@ -1,7 +1,7 @@
 from fractions import Fraction
 
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for
+    Blueprint, Markup, flash, g, redirect, render_template, request, url_for
 )
 from werkzeug.exceptions import abort
 
@@ -10,19 +10,30 @@ from gourmetweb.db import get_db
 bp = Blueprint('recipe', __name__)
 
 
-def pretty_time(seconds):
+def pretty_time(seconds, terse_type='full'):
+    assert terse_type in ('full', 'short'), f'Unrecognized value for `terse_type`: {terse_type}'
     minutes, seconds = divmod(seconds, 60)
     hours, minutes = divmod(minutes, 60)
 
     total_time = []
     if hours > 0:
-        total_time.append(f'{hours} hour{"s" if hours > 1 else ""}')
+        if terse_type == 'full':
+            total_time.append(f'{hours} hour{"s" if hours > 1 else ""}')
+        elif terse_type == 'short':
+            total_time.append(f'{hours} hr')
     if minutes > 0:
-        total_time.append(f'{minutes} minute{"s" if minutes > 1 else ""}')
+        if terse_type == 'full':
+            total_time.append(f'{minutes} minute{"s" if minutes > 1 else ""}')
+        elif terse_type == 'short':
+            total_time.append(f'{minutes} min')
     if seconds > 0:
-        total_time.append(f'{seconds} second{"s" if seconds > 1 else ""}')
+        if terse_type == 'full':
+            total_time.append(f'{seconds} second{"s" if seconds > 1 else ""}')
+        elif terse_type == 'short':
+            total_time.append(f'{seconds} sec')
 
-    return ' '.join(total_time)
+    if terse_type in ('full', 'short'):
+        return ' '.join(total_time)
 
 
 def pretty_number(value):
@@ -88,18 +99,52 @@ def get_pretty_ingredients(db, recipe_id):
     return group_ingredients_pretty
 
 
+def get_pretty_instructions(instructions):
+    pass
+
+
+def get_pretty_category(db, recipe_id):
+    category = db.execute(
+        'SELECT category'
+        ' FROM categories'
+        ' WHERE recipe_id=?',
+        (recipe_id, )
+    ).fetchone()
+    return category['category'] if category is not None else ''
+
+
+def get_pretty_rating(rating):
+    if rating == 0:
+        return ''
+
+    pretty = '★' * int(rating / 2)
+    pretty += '◐' if rating % 2 == 1 else ''
+    pretty += '☆' * (5 - int(rating / 2 + 0.5))
+    return pretty
+
+
 @bp.route('/')
 def index():
     db = get_db()
     recipes = db.execute(
-        'SELECT id, title, rating, yields, yield_unit, preptime, cooktime'
-        ' FROM recipe R'
+        'SELECT id, title, rating, yields, yield_unit, preptime,'
+        ' cooktime, cuisine'
+        ' FROM recipe'
     ).fetchall()
-    return render_template('recipe/index.html', recipes=recipes)
+
+    all_data = []
+    for recipe in recipes:
+        data = dict(**recipe)
+        data['category'] = get_pretty_category(db, recipe['id'])
+        data['total_time'] = pretty_time(recipe['preptime'] + recipe['cooktime'], terse_type='short')
+        data['rating_pretty'] = get_pretty_rating(recipe['rating'])
+        all_data.append(data)
+
+    return render_template('recipe/index.html', recipes=all_data)
 
 
-@bp.route('/<int:id>/')
-def recipe(id):
+@bp.route('/<int:recipe_id>/')
+def recipe(recipe_id):
     db = get_db()
 
     recipe = db.execute(
@@ -107,17 +152,22 @@ def recipe(id):
         ' instructions, modifications, cuisine, link'
         ' FROM recipe'
         ' WHERE id=?',
-        (id, )
+        (recipe_id, )
     ).fetchone()
 
     if recipe is None:
-        abort(404, "Recipe id {0} doesn't exist.".format(id))
+        abort(404, "Recipe id {0} doesn't exist.".format(recipe_id))
 
     data = dict(**recipe)
 
+    data['yields_pretty'] = pretty_number(data['yields'])
     data['preptime_pretty'] = pretty_time(data['preptime'])
     data['cooktime_pretty'] = pretty_time(data['cooktime'])
-    data['instructions_pretty'] = [i for i in data['instructions'].splitlines() if len(i.strip()) > 0]
-    data['ingredients_pretty'] = get_pretty_ingredients(db, id)
+    data['instructions_pretty'] = [Markup(i) for i in data['instructions'].splitlines() if len(i.strip()) > 0]
+    data['notes_pretty'] = [Markup(i) for i in data['modifications'].splitlines() if len(i.strip()) > 0]
+    data['rating_pretty'] = get_pretty_rating(data['rating'])
+
+    data['category'] = get_pretty_category(db, recipe_id)    
+    data['ingredients_pretty'] = get_pretty_ingredients(db, recipe_id)
     
     return render_template('recipe/recipe.html', recipe=data)

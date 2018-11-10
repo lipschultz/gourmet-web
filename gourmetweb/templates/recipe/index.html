@@ -9,7 +9,16 @@
     <article class="post">
       <header>
         <div>
-          <h1><a href="{{ url_for('recipe.recipe', id=recipe['id']) }}">{{ recipe['title'] }}</a></h1>
+          <a href="{{ url_for('recipe.recipe', recipe_id=recipe['id']) }}">
+            <h1>{{ recipe['title'] }}</h1>
+          </a>
+          <span style='font-size:small;'>
+            {{ recipe['cuisine'] }} {{ recipe['category'] }}
+            {% if (recipe['cuisine'] or recipe['category']) and (recipe['total_time'] or recipe['rating_pretty']) %} &mdash; {% endif %}
+            {{ recipe['total_time'] }}
+            {% if recipe['total_time'] and recipe['rating_pretty'] %} &mdash; {% endif %}
+            {{ recipe['rating_pretty'] }}
+          </span>
         </div>
       </header>
     </article>
