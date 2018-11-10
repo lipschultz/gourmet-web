@@ -15,8 +15,8 @@
   </div>
 
   <div>Rating:
-    {% if recipe['rating'] %}
-      {{ recipe['rating'] }}/10
+    {% if recipe['rating_pretty'] %}
+      {{ recipe['rating_pretty'] }}
     {% else %}
       <i>unrated</i>
     {% endif %}
