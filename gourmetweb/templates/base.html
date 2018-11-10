@@ -1,0 +1,20 @@
+<!doctype html>
+<title>{% block title %}{% endblock %} - Gourmet Web</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<script type="text/javascript" src="{{ url_for('static', filename='scripts.js') }}"></script>
+<nav>
+  <h1>Gourmet Web</h1>
+  <ul>
+    <li>Element 1</li>
+    <li>Element 2</li>
+  </ul>
+</nav>
+<section class="content">
+  <header>
+    {% block header %}{% endblock %}
+  </header>
+  {% for message in get_flashed_messages() %}
+    <div class="flash">{{ message }}</div>
+  {% endfor %}
+  {% block content %}{% endblock %}
+</section>

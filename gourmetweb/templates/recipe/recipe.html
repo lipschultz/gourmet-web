@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}{{ recipe['title'] }}{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <div>Yields: {{ recipe['yields'] }} {{ recipe['yields_unit'] }}</div>
+  <div>Prep Time: {{ recipe['preptime_pretty'] }}</div>
+  <div>Cook Time: {{ recipe['cooktime_pretty'] }}</div>
+  <div class='ingredients'><h2>Ingredients</h2>
+    {% for ingredient_group in recipe['ingredients_pretty'] %}
+      {% if ingredient_group[0] %}
+        <div class='ingredient-group'><h3>{{ ingredient_group[0] }}</h3>
+      {% endif %}
+
+      {% for ingredient in ingredient_group[1] %}
+        <div class='item'>
+          <input type='checkbox' name='ingredient-{{ ingredient_group[0] }}-{{ loop.index }}' id='ingredient-{{ ingredient_group[0] }}-{{ loop.index }}' onchange='visualizeCheck(this);' />
+          <label name='ingredient-{{ ingredient_group[0] }}-{{ loop.index }}' for='ingredient-{{ ingredient_group[0] }}-{{ loop.index }}'{% if ingredient['optional'] %} class='optional'{% endif %}>
+            {{ ingredient['ingredient'] }}
+            {% if ingredient['optional'] %}
+            (optional)
+            {% endif %}
+          </label>
+        </div>
+      {% endfor %}
+
+      {% if ingredient_group[0] %}
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+  <div class='instructions'><h2>Instructions</h2>
+    {% for instruction in recipe['instructions_pretty'] %}
+      <div class='item'>
+        <input type='checkbox' name='instruction-{{ loop.index }}' id='instruction-{{ loop.index }}' onchange='visualizeCheck(this);' />
+          <label name='instruction-{{ loop.index }}' for='instruction-{{ loop.index }}'>
+            {{ instruction }}
+          </label>
+      </div>
+    {% endfor %}
+  </div>
+{% endblock %}
