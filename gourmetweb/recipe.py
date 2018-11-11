@@ -100,7 +100,11 @@ def get_pretty_ingredients(db, recipe_id):
 
 
 def get_pretty_instructions(instructions):
-    pass
+    return [Markup(i) for i in instructions.splitlines() if len(i.strip()) > 0]
+
+
+def get_pretty_notes(notes):
+    return [Markup(i) for i in notes.splitlines() if len(i.strip()) > 0]
 
 
 def get_pretty_category(db, recipe_id):
@@ -163,8 +167,8 @@ def recipe(recipe_id):
     data['yields_pretty'] = pretty_number(data['yields'])
     data['preptime_pretty'] = pretty_time(data['preptime'])
     data['cooktime_pretty'] = pretty_time(data['cooktime'])
-    data['instructions_pretty'] = [Markup(i) for i in data['instructions'].splitlines() if len(i.strip()) > 0]
-    data['notes_pretty'] = [Markup(i) for i in data['modifications'].splitlines() if len(i.strip()) > 0]
+    data['instructions_pretty'] = get_pretty_instructions(data['instructions'])
+    data['notes_pretty'] = get_pretty_notes(data['modifications'])
     data['rating_pretty'] = get_pretty_rating(data['rating'])
 
     data['category'] = get_pretty_category(db, recipe_id)    
