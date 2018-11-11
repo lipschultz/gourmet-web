@@ -2,6 +2,9 @@
 
 {% block header %}
   <h1>{% block title %}{{ recipe['title'] }}{% endblock %}</h1>
+  {% if recipe['link'] %}
+    <div style='float:right;'><a href="{{ recipe['link'] }}">Source</a></div>
+  {% endif %}
 {% endblock %}
 
 {% block content %}
