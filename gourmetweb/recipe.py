@@ -39,7 +39,7 @@ def pretty_time(seconds, terse_type='full'):
 def pretty_number(value):
     if value is None:
         return ''
-        
+
     whole_number = int(value)
     fractional_number = value % 1
     if fractional_number == 0:
@@ -139,9 +139,13 @@ def index():
     all_data = []
     for recipe in recipes:
         data = dict(**recipe)
+        print(data)
         data['category'] = get_pretty_category(db, recipe['id'])
-        data['total_time'] = pretty_time(recipe['preptime'] + recipe['cooktime'], terse_type='short')
-        data['rating_pretty'] = get_pretty_rating(recipe['rating'])
+        data['total_time'] = pretty_time(
+            (0 if data['preptime'] is None else data['preptime'])
+            + (0 if data['cooktime'] is None else data['cooktime']),
+            terse_type='short')
+        data['rating_pretty'] = get_pretty_rating(0 if recipe['rating'] is None else recipe['rating'])
         all_data.append(data)
 
     return render_template('recipe/index.html', recipes=all_data)
